@@ -19,23 +19,38 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const FormSchema = z.object({
-  username: z.string().min(2, "Username must be at least 2 characters long"),
+  username: z
+    .string()
+    .min(2, "Username must be at least 2 characters long")
+    .regex(/^[a-zA-Z0-9-_]+$/, {
+      message: "Username can't have any special characters except '-' and '_'",
+    }),
   email: z
     .string()
     .min(1, "Email is required")
     .email("That is not a valid email"),
   password: z
     .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+    .min(8, { message: "Password must be be at least 8 characters long" })
+    .regex(/[a-zA-Z]/, {
+      message: "Password must contain at least one letter.",
+    })
+    .regex(/[0-9]/, { message: "Password must contain at least one number." })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must contain at least one special character.",
+    })
+    .trim(),
 });
 
 export default function SignUp(): React.ReactElement {
+  const router = useRouter();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -45,8 +60,28 @@ export default function SignUp(): React.ReactElement {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  async function handleGoogleSingUp() {
+    await signIn("google", { callbackUrl: "/username" });
+  }
+
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    const request = await fetch("api/user/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      }),
+    });
+
+    if (request.ok) {
+      router.push("/sign-in");
+    } else {
+      console.error("Registration Failed!");
+    }
   }
   return (
     <Card className='w-full max-w-sm mt-10'>
@@ -104,7 +139,12 @@ export default function SignUp(): React.ReactElement {
               <Button className='w-full' type='submit'>
                 Sign Up
               </Button>
-              <Button className='w-full'>Sign up with Google</Button>
+              <Button
+                className='w-full'
+                type='button'
+                onClick={handleGoogleSingUp}>
+                Sign up with Google
+              </Button>
               <p className='text-sm'>
                 Already have an account?{" "}
                 <Button

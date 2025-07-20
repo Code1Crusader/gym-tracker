@@ -19,37 +19,51 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const FormSchema = z.object({
-  username: z
-    .string()
-    .min(2, "Username or email must be at least 2 characters long"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+  usernameOrEmail: z.union([
+    z.string().email(),
+    z.string().min(1, "Username or Email is required"),
+  ]),
+  password: z.string().min(1, "Password is required"),
 });
 
 export default function SignIn(): React.ReactElement {
+  const router = useRouter();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      username: "",
+      usernameOrEmail: "",
       password: "",
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  async function onCredentialsSubmit(data: z.infer<typeof FormSchema>) {
+    const signInData = await signIn("credentials", {
+      usernameOrEmail: data.usernameOrEmail,
+      password: data.password,
+      redirect: false,
+    });
+    if (signInData?.ok && !signInData?.error) {
+      router.push("/");
+    } else {
+      console.log(signInData?.error);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    await signIn("google", { callBackUrl: "/" });
   }
 
   return (
     <Card className='w-full max-w-sm mt-10'>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onCredentialsSubmit)}>
           <div className='flex flex-col gap-6'>
             <CardHeader>
               <CardTitle>Sign in to your account</CardTitle>
@@ -66,10 +80,10 @@ export default function SignIn(): React.ReactElement {
               <div className='grid gap-6'>
                 <FormField
                   control={form.control}
-                  name='username'
+                  name='usernameOrEmail'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel>Username or Email</FormLabel>
                       <FormControl>
                         <Input placeholder='GymBro' {...field} />
                       </FormControl>
@@ -96,7 +110,11 @@ export default function SignIn(): React.ReactElement {
               <Button className='w-full' type='submit'>
                 Login
               </Button>
-              <Button className='w-full' variant='outline'>
+              <Button
+                className='w-full'
+                variant='outline'
+                type='button'
+                onClick={handleGoogleSignIn}>
                 Sign in with Google
               </Button>
             </CardFooter>

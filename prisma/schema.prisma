@@ -19,8 +19,8 @@ model Account{
   type String
   provider String
   providerAccountId String
-  refresh_token String
-  access_token String
+  refresh_token String? @db.Text
+  access_token String? @db.Text
   expires_at Int?
   token_type String?
   scope String?
@@ -54,10 +54,12 @@ model User {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt 
-  password String @unique
+  password String? @unique
   email String @unique
   emailVerified DateTime?
-  username String @unique
+  image String?
+  name String?
+  username String? @unique
   accounts Account[]
   sessions Session[]
   exercises Exercise[]
