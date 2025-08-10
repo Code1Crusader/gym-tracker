@@ -1,5 +1,5 @@
 "user client";
-import Username from "@/components/Username";
+import Username from "@/components/auth/Username";
 import { getServerAuthSession } from "@/lib/auth";
 import { notFound } from "next/navigation";
 

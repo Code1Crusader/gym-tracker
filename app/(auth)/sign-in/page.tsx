@@ -1,4 +1,4 @@
-import SignIn from "@/components/SignInCard";
+import SignIn from "@/components/auth/SignInCard";
 
 export default function SignInPage(): React.ReactElement {
   return (

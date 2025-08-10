@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     if (usernameExists) {
       return NextResponse.json(
-        { user: null, message: "User with this username already exists" },
+        { field: "username", message: "That username is already taken" },
         { status: 409 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     if (emailExists) {
       return NextResponse.json(
-        { user: null, message: "User with this email already exists" },
+        { field: "email", message: "That email is already has an account" },
         { status: 409 }
       );
     }
@@ -76,8 +76,9 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("Error creating user", error);
     return NextResponse.json(
-      { message: "Could not register user", error: error },
+      { message: "There was a problem with your registration" },
       { status: 500 }
     );
   }

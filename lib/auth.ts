@@ -62,7 +62,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: existingUser.id,
           email: existingUser.email,
-          username: existingUser.username,
+          username: existingUser.username ?? "",
           image: existingUser.image,
         };
       },
@@ -75,6 +75,20 @@ export const authOptions: NextAuthOptions = {
       console.log("JWT - Account: ", account);
       console.log("JWT - Trigger: ", trigger);
       console.log("JWT - Session: ", session);
+
+      if (trigger === "update" && session?.username) {
+        return {
+          ...token,
+          username: session.username,
+        };
+      }
+
+      if (user) {
+        return {
+          ...token,
+          username: user.username,
+        };
+      }
       return token;
     },
     async session({ session, token, user }) {
@@ -82,7 +96,13 @@ export const authOptions: NextAuthOptions = {
       console.log("Session - Token: ", token);
       console.log("Session - User: ", user);
 
-      return session;
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          username: token.username,
+        },
+      };
     },
     async signIn({ user, account, profile }) {
       console.log("SignIn - User: ", user);

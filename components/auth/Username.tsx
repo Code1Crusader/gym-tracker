@@ -13,7 +13,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -21,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useSession } from "next-auth/react";
 
 const FormSchema = z.object({
   username: z
@@ -37,13 +37,14 @@ export default function Username({
   userEmail: string;
 }): React.ReactElement {
   const router = useRouter();
+  const { update } = useSession();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       username: "",
     },
   });
-
+  const { setError } = form;
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     const request = await fetch("/api/user/update-username", {
       method: "POST",
@@ -55,11 +56,15 @@ export default function Username({
         userEmail: userEmail,
       }),
     });
-
+    update({ username: data.username });
     if (request.ok) {
       router.push("/");
     } else {
-      console.error("Failed to update the username", request);
+      const body = await request.json();
+      setError("username", {
+        type: "manual",
+        message: body.message,
+      });
     }
   }
   return (
@@ -81,7 +86,6 @@ export default function Username({
                 name='username'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input placeholder='GymBro' {...field} />
                     </FormControl>

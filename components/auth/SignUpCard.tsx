@@ -59,7 +59,7 @@ export default function SignUp(): React.ReactElement {
       password: "",
     },
   });
-
+  const { setError } = form;
   async function handleGoogleSingUp() {
     await signIn("google", { callbackUrl: "/username" });
   }
@@ -80,7 +80,11 @@ export default function SignUp(): React.ReactElement {
     if (request.ok) {
       router.push("/sign-in");
     } else {
-      console.error("Registration Failed!");
+      const body = await request.json();
+      setError(body.field, {
+        type: "manual",
+        message: body.message,
+      });
     }
   }
   return (
@@ -127,7 +131,11 @@ export default function SignUp(): React.ReactElement {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type='password' {...field} />
+                        <Input
+                          type='password'
+                          placeholder='••••••••'
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -136,17 +144,17 @@ export default function SignUp(): React.ReactElement {
               </div>
             </CardContent>
             <CardFooter className='flex flex-col gap-2'>
-              <Button className='w-full' type='submit'>
+              <Button className='w-full cursor-pointer' type='submit'>
                 Sign Up
               </Button>
               <Button
-                className='w-full'
+                className='w-full cursor-pointer'
                 type='button'
                 onClick={handleGoogleSingUp}>
                 Sign up with Google
               </Button>
               <p className='text-sm'>
-                Already have an account?{" "}
+                Already have an account?
                 <Button
                   asChild
                   variant='link'

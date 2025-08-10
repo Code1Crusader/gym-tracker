@@ -107,11 +107,11 @@ export default function SignIn(): React.ReactElement {
               </div>
             </CardContent>
             <CardFooter className='flex-col gap-2'>
-              <Button className='w-full' type='submit'>
+              <Button className='w-full cursor-pointer' type='submit'>
                 Login
               </Button>
               <Button
-                className='w-full'
+                className='w-full cursor-pointer'
                 variant='outline'
                 type='button'
                 onClick={handleGoogleSignIn}>

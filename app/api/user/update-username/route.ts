@@ -18,13 +18,11 @@ export async function POST(req: NextRequest) {
     const { username } = UsernameSchema.parse(body);
     const { userEmail } = body;
 
+    // Ensure email is provided with
     if (!userEmail) {
-      return NextResponse.json(
-        {
-          error: "User email not provided",
-        },
-        { status: 402 }
-      );
+      throw new Error("User email not provided for username creation", {
+        cause: "User email is null",
+      });
     }
 
     // Check if username already exists
@@ -35,9 +33,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (userExists) {
+      console.warn(`Username ${userExists.username} is already taken`);
       return NextResponse.json(
         {
-          error: "Username already exists",
+          message: "That username is already taken",
         },
         { status: 409 }
       );
@@ -68,9 +67,9 @@ export async function POST(req: NextRequest) {
     console.error("Error creatiing username:", error);
     return NextResponse.json(
       {
-        error: "Invalid request data",
+        message: "There was a problem creating your username",
       },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }
